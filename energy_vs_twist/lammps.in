@@ -1,0 +1,48 @@
+
+dimension 3                                        
+
+boundary p p p                                     
+
+atom_style full                                 
+
+read_data Inputstructure_file 
+
+group center id  6**** 1*****  #center atom of the falke
+
+group membrane  id 1:1*****   #fixing complete substrate
+
+newton on                                
+
+pair_style hybrid/overlay drip extep
+
+pair_coeff * * drip  C.drip    B  N 
+
+pair_coeff * * extep BN.extep  B N
+
+neighbor 2 bin                                      
+
+neigh_modify every 1 delay 0 check yes              
+
+timestep  0.001
+
+fix       1 center setforce 0.0 0.0 NULL
+
+fix       subf membrane setforce 0.0 0.0 0.0
+
+compute eng all pe/atom
+
+compute eatoms all reduce sum c_eng
+
+thermo 10
+
+thermo_style custom step pe lx ly lz press pxx pyy pzz c_eatoms
+
+min_style cg
+
+dump 2 all custom 100 dump.minimization id type x y z ix iy iz
+
+dump_modify 2 format float %20.15g sort id
+
+minimize          0.0 1.0e-5 1 1
+
+print "All done!"
